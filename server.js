@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import connectDB from './src/config/db.js';
 
 import adminRoutes from './src/routes/adminRoutes.js';
-// import abstractRoutes from './src/routes/abstractRoutes.js';
+import abstractRoutes from './src/routes/abstractRoutes.js';
 // import assessmentRoutes from './src/routes/assessmentRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +25,7 @@ app.use(cookieParser());
 connectDB();
 
 app.use('/api/admin', adminRoutes);
-// app.use('/api/abstracts', abstractRoutes);
+app.use('/api/abstracts', abstractRoutes);
 // app.use('/api/assessment', assessmentRoutes);
 
 app.get('/', (req, res) => {

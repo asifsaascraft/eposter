@@ -1,57 +1,39 @@
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import connectDB from './src/config/db.js';
 
-import hotelRoutes from './src/routes/hotelRoutes.js';
-import bookingRoutes from './src/routes/bookingRoutes.js'; // NEW
-import paymentRoutes from './src/routes/paymentRoutes.js'; // NEW
+import adminRoutes from './src/routes/adminRoutes.js';
+// import abstractRoutes from './src/routes/abstractRoutes.js';
+// import assessmentRoutes from './src/routes/assessmentRoutes.js';
 
-
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-
-const allowedOrigins = [
-  'https://accommodation.synergymeetings.in',
-  'http://localhost:3000' // keep this for local dev
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // if you send cookies/auth headers
-}));
-
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-// Hotel API Routes
-app.use('/api/hotel', hotelRoutes);
-// NEW Payment API Routes
-app.use('/api/payment', paymentRoutes);
+connectDB();
 
-// Booking API Routes
-app.use('/api/booking', bookingRoutes); // NEW
+app.use('/api/admin', adminRoutes);
+// app.use('/api/abstracts', abstractRoutes);
+// app.use('/api/assessment', assessmentRoutes);
 
-app.get('/', (req, res) => res.send('🎉 SWE Hotel Booking API is Running..........!!!!'));
+app.get('/', (req, res) => {
+    res.send('🎯 ePoster Judging API Running Successfully');
+});
 
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-};
-
-startServer();
+app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

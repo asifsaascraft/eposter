@@ -38,7 +38,7 @@ export const calculateResults = async (req, res) => {
     }
 };
 
-// Calculate ePoster results
+// Calculate ePoster results - FIXED to be consistent
 const calculateEposterResults = async () => {
     const eposters = await Eposter.find();
     
@@ -66,14 +66,22 @@ const calculateEposterResults = async () => {
 
             // Calculate total scores across all judges
             const totalScores = assessments.reduce((acc, assessment) => {
+                const judgeTotal = 
+                    assessment.scores.researchTopic +
+                    assessment.scores.methods +
+                    assessment.scores.results +
+                    assessment.scores.presentation +
+                    assessment.scores.qa;
+
                 return {
                     researchTopic: acc.researchTopic + assessment.scores.researchTopic,
                     methods: acc.methods + assessment.scores.methods,
                     results: acc.results + assessment.scores.results,
                     presentation: acc.presentation + assessment.scores.presentation,
-                    qa: acc.qa + assessment.scores.qa
+                    qa: acc.qa + assessment.scores.qa,
+                    total: acc.total + judgeTotal  // ✅ Add judge's total
                 };
-            }, { researchTopic: 0, methods: 0, results: 0, presentation: 0, qa: 0 });
+            }, { researchTopic: 0, methods: 0, results: 0, presentation: 0, qa: 0, total: 0 });
 
             // Calculate averages (divide by number of judges)
             const averageScores = {
@@ -84,17 +92,11 @@ const calculateEposterResults = async () => {
                 qa: totalScores.qa / assessments.length
             };
 
-            // Calculate overall average
-            const overallAverage = (
-                averageScores.researchTopic +
-                averageScores.methods +
-                averageScores.results +
-                averageScores.presentation +
-                averageScores.qa
-            ) / 5;
+            // ✅ FIXED: Consistent calculation - Total Score ÷ Number of Judges
+            const overallAverage = totalScores.total / assessments.length;
 
             return {
-                id: eposter._id,
+                id: eposter._id.toString(),
                 abstractNo: eposter.abstractNo,
                 author: eposter.author,
                 title: eposter.title,
@@ -102,9 +104,7 @@ const calculateEposterResults = async () => {
                 type: 'eposter',
                 totalJudges: assessments.length,
                 averageScore: parseFloat(overallAverage.toFixed(2)),
-                totalScore: parseFloat(
-                    Object.values(totalScores).reduce((sum, score) => sum + score, 0).toFixed(2)
-                ),
+                totalScore: parseFloat(totalScores.total.toFixed(2)),
                 categoryScores: averageScores,
                 assessments: assessments.map(a => ({
                     judgeId: a.judgeId,
@@ -118,7 +118,7 @@ const calculateEposterResults = async () => {
     return results;
 };
 
-// Calculate Presentation results (similar logic but includes negative marks)
+// Calculate Presentation results - Already correct
 const calculatePresentationResults = async () => {
     const presentations = await Presentation.find();
     
@@ -146,7 +146,7 @@ const calculatePresentationResults = async () => {
 
             const totalScores = assessments.reduce((acc, assessment) => {
                 const negativeMarks = assessment.scores.negativeMarks || 0;
-                const totalScore = 
+                const judgeTotal = 
                     assessment.scores.researchTopic +
                     assessment.scores.methods +
                     assessment.scores.results +
@@ -161,7 +161,7 @@ const calculatePresentationResults = async () => {
                     presentation: acc.presentation + assessment.scores.presentation,
                     qa: acc.qa + assessment.scores.qa,
                     negativeMarks: acc.negativeMarks + negativeMarks,
-                    total: acc.total + totalScore
+                    total: acc.total + judgeTotal
                 };
             }, { researchTopic: 0, methods: 0, results: 0, presentation: 0, qa: 0, negativeMarks: 0, total: 0 });
 
@@ -175,10 +175,11 @@ const calculatePresentationResults = async () => {
                 negativeMarks: totalScores.negativeMarks / assessments.length
             };
 
+            // ✅ Already correct: Total Score ÷ Number of Judges
             const overallAverage = totalScores.total / assessments.length;
 
             return {
-                id: presentation._id,
+                id: presentation._id.toString(),
                 abstractNo: presentation.abstractNo,
                 author: presentation.author,
                 title: presentation.title,
